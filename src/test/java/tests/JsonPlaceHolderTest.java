@@ -1,80 +1,59 @@
 package tests;
 
-import org.junit.jupiter.api.Test;
-
-import static io.restassured.RestAssured.given;
+import com.github.javafaker.Faker;
+import io.qameta.allure.internal.shadowed.jackson.core.JsonProcessingException;
+import io.qameta.allure.internal.shadowed.jackson.databind.ObjectMapper;
+import org.example.models.CrudModel;
+import org.junit.jupiter.api.*;
 
 public class JsonPlaceHolderTest extends BaseTest {
+    private static final Faker faker = new Faker();
+    private String jsonBody;
+    private CrudModel requestBody;
+
+    @BeforeEach
+    void beforeEach() throws JsonProcessingException {
+        String randomUserId = "" + faker.number().numberBetween(1, 100);
+        String randomId = "" + faker.number().numberBetween(1, 100);
+        String randomTitle = faker.book().title();
+        String randomBody = faker.lorem().sentence(10);
+
+        requestBody = CrudModel.builder()
+                .userId(randomUserId)
+                .id(randomId)
+                .title(randomTitle)
+                .body(randomBody)
+                .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        jsonBody = objectMapper.writeValueAsString(requestBody);
+    }
+
     @Test
     void getDataTest() {
-        var response = given()
-                .get("100")
-                .then()
-                .statusCode(200)
-                .log().all()
-                .extract().body().jsonPath().get("id");
+        var response = requestApiSteps.getData(requestBody.getId());
 
-        System.out.println(response);
+        Assertions.assertEquals(response.body().jsonPath().get("id").toString(), requestBody.getId());
     }
 
     @Test
     void createDataTest() {
-        var body = "{\n" +
-                "    \"userId\": 101,\n" +
-                "    \"id\": 101,\n" +
-                "    \"title\": \"title\"\n" +
-                "    \"body\": \"Test Body\"\n" +
-                "}";
+        var response =  requestApiSteps.createData(jsonBody);
 
-        var response = given()
-                .post(body)
-                .then()
-                .statusCode(201)
-                .log().all()
-                .extract().body().jsonPath().get("id");
-
-        System.out.println(response);
+        // Assertions
     }
 
     @Test
     void updateDataTest() {
-        var body = "{\n" +
-                "    \"userId\": 101,\n" +
-                "    \"id\": 1,\n" +
-                "    \"title\": \"title\"\n" +
-                "    \"body\": \"Test Body\"\n" +
-                "}";
+        var response = requestApiSteps.updateData(jsonBody);
 
-        var response = given()
-                .post(body)
-                .then()
-                .statusCode(201)
-                .log().all()
-                .extract().body().jsonPath().get("id");
-
-        System.out.println(response);
-
+        // Assertions
     }
 
     @Test
     void deleteDataTest() {
-        var response = given()
-                .delete("100")
-                .then()
-                .statusCode(200)
-                .log().all()
-                .extract().body().jsonPath().get("id");
+        var response = requestApiSteps.deleteData(requestBody.getId());
 
-        System.out.println(response);
-
-        var getResponse = given()
-                .get("100")
-                .then()
-                .statusCode(200)
-                .log().all()
-                .extract().body().jsonPath().get("id");
-
-        System.out.println(getResponse);
-
+        // Assertions
     }
 }
