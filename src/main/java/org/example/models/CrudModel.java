@@ -6,8 +6,8 @@ import lombok.*;
 @Getter
 @Builder
 public class CrudModel {
-    private String userId;
-    private String id;
+    private int userId;
+    private int id;
     private String title;
     private String body;
 }
